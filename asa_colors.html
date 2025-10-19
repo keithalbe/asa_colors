@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ASA Color Grid</title>
+<style>
+  body {
+    font-family: "Segoe UI", Roboto, sans-serif;
+    background-color: #111;
+    color: #eee;
+    margin: 0;
+    padding: 20px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+  }
+
+  .color-box {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    height: 160px;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    transition: transform 0.25s ease;
+  }
+
+  .color-box:hover {
+    transform: scale(1.05);
+  }
+
+  /* Unified pill style */
+  .pill {
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 4px;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .color-name {
+    opacity: 0;
+    transform: translateY(-5px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+
+  .button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: auto;
+    opacity: 0;
+    transform: translateY(5px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+
+  .color-box:hover .color-name,
+  .color-box:hover .button-row {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Number button pill */
+  .color-button {
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 4px 10px;
+    font-size: 0.85em;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border 0.2s;
+  }
+
+  .color-button:hover {
+    background: #fff;
+    color: #000;
+  }
+
+</style>
+</head>
+<body>
+<div class="grid" id="regionsGrid"></div>
+<hr style="margin: 10px 0; border-color: #444;">
+<div class="grid" id="colorGrid"></div>
+
+<script>
+    const colorData = {
+        "#171717": { "id": 79, "name": "ActualBlack" },
+        "#191919": { "id": 224, "name": "Black Coloring" },
+        "#330000": { "id": 128, "name": "Burn Coloring" },
+        "#1F1F1F": { "id": 201, "name": "Black Dye" },
+        "#333333": { "id": 225, "name": "Shadow Coloring" },
+        "#660000": { "id": 129, "name": "Scab Coloring" },
+        "#3B3B3B": { "id": 14, "name": "Black" },
+        "#592B2B": { "id": 20, "name": "Dino Dark Red" },
+        "#4D4D4D": { "id": 226, "name": "Charcoal Coloring" },
+        "#515151": { "id": 56, "name": "NearBlack" },
+        "#595959": { "id": 226, "name": "Slate Dye" },
+        "#B30000": { "id": 130, "name": "Gore Coloring" },
+        "#666666": { "id": 227, "name": "Gunmetal Coloring" },
+        "#7B7B7B": { "id": 13, "name": "Dark Grey" },
+        "#A65353": { "id": 135, "name": "Edocha Coloring" },
+        "#FF0000": { "id": 212, "name": "Red Dye" },
+        "#808080": { "id": 228, "name": "Slate Coloring" },
+        "#999999": { "id": 229, "name": "Steel Coloring" },
+        "#B3B3B3": { "id": 230, "name": "Grey Coloring" },
+        "#D98D8D": { "id": 134, "name": "Incense Coloring" },
+        "#FF7373": { "id": 132, "name": "Tulip Coloring" },
+        "#CCCCCC": { "id": 231, "name": "Silver Coloring" },
+        "#FFA8A8": { "id": 19, "name": "Dino Light Red" },
+        "#FFBFBF": { "id": 133, "name": "Salmon Coloring" },
+        "#E0E0E0": { "id": 214, "name": "Silver Dye" },
+        "#E6E6E6": { "id": 232, "name": "Wisp Coloring" },
+        "#EDEDED": { "id": 55, "name": "NearWhite" },
+        "#FEFEFE": { "id": 218, "name": "White Dye" },
+        "#FFFFFF": { "id": 233, "name": "White Coloring" },
+        "#FF756C": { "id": 12, "name": "Light Red" },
+        "#812118": { "id": 17, "name": "Dark Red" },
+        "#FF5834": { "id": 74, "name": "Coral" },
+        "#94341F": { "id": 221, "name": "Brick Dye" },
+        "#9B9290": { "id": 64, "name": "LightWarmGray" },
+        "#EF3100": { "id": 73, "name": "Vermillion" },
+        "#7E331E": { "id": 71, "name": "BurntSienna" },
+        "#EADAD5": { "id": 38, "name": "BigFoot4" },
+        "#585554": { "id": 63, "name": "MediumWarmGray" },
+        "#994326": { "id": 243, "name": "Brick Coloring" },
+        "#A93000": { "id": 72, "name": "MediumAutumn" },
+        "#CB7956": { "id": 43, "name": "DragonBase1" },
+        "#D0A794": { "id": 39, "name": "BigFoot5" },
+        "#A0664B": { "id": 42, "name": "DragonBase0" },
+        "#FFB694": { "id": 21, "name": "Dino Light Orange" },
+        "#3B3938": { "id": 62, "name": "DarkWarmGray" },
+        "#593A2A": { "id": 15, "name": "Brown" },
+        "#B79683": { "id": 37, "name": "BigFoot0" },
+        "#88532F": { "id": 22, "name": "Dino Dark Orange" },
+        "#BC4F00": { "id": 44, "name": "DragonFire" },
+        "#AD652C": { "id": 217, "name": "Tangerine Dye" },
+        "#786759": { "id": 9, "name": "Light Brown" },
+        "#887666": { "id": 41, "name": "DarkWolfFur" },
+        "#FFB46C": { "id": 10, "name": "Light Orange" },
+        "#331900": { "id": 136, "name": "Bronze Coloring" },
+        "#A67C53": { "id": 143, "name": "Dirt Coloring" },
+        "#B35900": { "id": 138, "name": "Windsor Coloring" },
+        "#FF7F00": { "id": 139, "name": "Orange Coloring" },
+        "#D9B38D": { "id": 142, "name": "Latte Coloring" },
+        "#663300": { "id": 137, "name": "Terracotta Coloring" },
+        "#FFB973": { "id": 140, "name": "Cantaloupe Coloring" },
+        "#FFDFBF": { "id": 141, "name": "Peach Coloring" },
+        "#948575": { "id": 33, "name": "Dino Medium Brown" },
+        "#FF8800": { "id": 208, "name": "Orange Dye" },
+        "#594E41": { "id": 34, "name": "Dino Dark Brown" },
+        "#FFE0BA": { "id": 32, "name": "Dino Light Brown" },
+        "#FFA73A": { "id": 76, "name": "Peach" },
+        "#C3B39F": { "id": 40, "name": "WolfFur" },
+        "#756147": { "id": 203, "name": "Brown Dye" },
+        "#473B2B": { "id": 223, "name": "Mud Dye" },
+        "#FFA424": { "id": 244, "name": "Tangerine Coloring" },
+        "#FF9A00": { "id": 222, "name": "Cantaloupe Dye" },
+        "#403522": { "id": 234, "name": "Mud Coloring" },
+        "#AE7000": { "id": 77, "name": "LightAutumn" },
+        "#594724": { "id": 235, "name": "Bark Coloring" },
+        "#80642D": { "id": 236, "name": "Brown Coloring" },
+        "#B39C59": { "id": 238, "name": "Camel Coloring" },
+        "#CCB266": { "id": 239, "name": "Tan Coloring" },
+        "#E6C973": { "id": 240, "name": "Sand Coloring" },
+        "#99823D": { "id": 237, "name": "Leather Coloring" },
+        "#FFEFBF": { "id": 241, "name": "Parchment Coloring" },
+        "#FFC000": { "id": 245, "name": "Gold Coloring" },
+        "#766E3F": { "id": 98, "name": "DryMoss" },
+        "#FFED82": { "id": 216, "name": "Tan Dye" },
+        "#FFFA8A": { "id": 11, "name": "Light Yellow" },
+        "#A5A48B": { "id": 47, "name": "DragonGreen2" },
+        "#C0BD5E": { "id": 99, "name": "Custard" },
+        "#333300": { "id": 144, "name": "Drab Coloring" },
+        "#666600": { "id": 145, "name": "Olive Coloring" },
+        "#949427": { "id": 78, "name": "Mustard" },
+        "#A6A653": { "id": 151, "name": "Mold Coloring" },
+        "#FFFF00": { "id": 219, "name": "Yellow Dye" },
+        "#94946C": { "id": 24, "name": "Dino Dark Yellow" },
+        "#BABA59": { "id": 225, "name": "Olive Dye" },
+        "#F0F032": { "id": 246, "name": "Mustard Coloring" },
+        "#D9D98D": { "id": 150, "name": "Khaki Coloring" },
+        "#CACAA0": { "id": 23, "name": "Dino Light Yellow" },
+        "#FFFF73": { "id": 148, "name": "Canary Coloring" },
+        "#FFFFBA": { "id": 209, "name": "Parchment Dye" },
+        "#FFFFBF": { "id": 149, "name": "Buttermilk Coloring" },
+        "#F5F5DC": { "id": 242, "name": "Cream Coloring" },
+        "#B2B300": { "id": 146, "name": "Citron Coloring" },
+        "#505118": { "id": 97, "name": "Cammo" },
+        "#F4FFC0": { "id": 100, "name": "Cream" },
+        "#B3E912": { "id": 247, "name": "Craggy-Dew Coloring" },
+        "#909C79": { "id": 46, "name": "DragonGreen1" },
+        "#79846C": { "id": 45, "name": "DragonGreen0" },
+        "#A8FF44": { "id": 83, "name": "LemonLime" },
+        "#80FF00": { "id": 155, "name": "Chartreuse Coloring" },
+        "#336600": { "id": 153, "name": "Avocado Coloring" },
+        "#B3D98D": { "id": 158, "name": "Putrescence Coloring" },
+        "#B9FF73": { "id": 156, "name": "Menthol Coloring" },
+        "#DFFFBF": { "id": 157, "name": "Nyanza Coloring" },
+        "#59B300": { "id": 154, "name": "Orc Coloring" },
+        "#7CA653": { "id": 159, "name": "Filth Coloring" },
+        "#193300": { "id": 152, "name": "Swamp Coloring" },
+        "#5B9725": { "id": 88, "name": "LeafGreen" },
+        "#224900": { "id": 16, "name": "Dark Green" },
+        "#C0FFBA": { "id": 7, "name": "Light Green" },
+        "#003300": { "id": 160, "name": "Nori Coloring" },
+        "#224122": { "id": 27, "name": "Dino Dark Green" },
+        "#006600": { "id": 161, "name": "Hunter Coloring" },
+        "#006C00": { "id": 205, "name": "Forest Dye" },
+        "#00B300": { "id": 162, "name": "Emerald Coloring" },
+        "#53A653": { "id": 167, "name": "Chateau Coloring" },
+        "#00FF00": { "id": 206, "name": "Green Dye" },
+        "#799479": { "id": 26, "name": "Dino Medium Green" },
+        "#8DD98D": { "id": 166, "name": "Celadon Coloring" },
+        "#73FF73": { "id": 164, "name": "Mint Coloring" },
+        "#BFFFBF": { "id": 165, "name": "Pistachio Coloring" },
+        "#E0FFE0": { "id": 25, "name": "Dino Light Green" },
+        "#3E4F40": { "id": 61, "name": "Sage" },
+        "#227330": { "id": 248, "name": "Grass Coloring" },
+        "#38E985": { "id": 84, "name": "Mint" },
+        "#0F552E": { "id": 86, "name": "PineGreen" },
+        "#525B56": { "id": 65, "name": "DarkCement" },
+        "#008840": { "id": 85, "name": "Jade" },
+        "#40594C": { "id": 60, "name": "GreenSlate" },
+        "#53A67C": { "id": 175, "name": "Shamrock Coloring" },
+        "#00B359": { "id": 170, "name": "Lagoon Coloring" },
+        "#006633": { "id": 169, "name": "Forest Coloring" },
+        "#8DD9B3": { "id": 174, "name": "Turquoise Coloring" },
+        "#73FFB9": { "id": 172, "name": "Aquamarine Coloring" },
+        "#BFFFDF": { "id": 173, "name": "Seafoam Coloring" },
+        "#00FF80": { "id": 171, "name": "Spring Coloring" },
+        "#00331A": { "id": 168, "name": "Jungle Coloring" },
+        "#8AA196": { "id": 66, "name": "LightCement" },
+        "#005B45": { "id": 87, "name": "SpruceGreen" },
+        "#007060": { "id": 58, "name": "MediumTurquoise" },
+        "#00C5AB": { "id": 59, "name": "Turquoise" },
+        "#2AC6B6": { "id": 249, "name": "Stream Coloring" },
+        "#003333": { "id": 176, "name": "Mariana Coloring" },
+        "#006666": { "id": 177, "name": "Skobeloff Coloring" },
+        "#00B3B3": { "id": 178, "name": "Teal Coloring" },
+        "#53A6A6": { "id": 183, "name": "Ocean Coloring" },
+        "#00FFFF": { "id": 204, "name": "Cyan Dye" },
+        "#8DD9D9": { "id": 182, "name": "Crystal Coloring" },
+        "#73FFFF": { "id": 180, "name": "Electricity Coloring" },
+        "#C8CACA": { "id": 8, "name": "Light Grey" },
+        "#BFFFFF": { "id": 181, "name": "Celeste Coloring" },
+        "#184546": { "id": 57, "name": "DarkTurquoise" },
+        "#0E404A": { "id": 92, "name": "DarkTeal" },
+        "#105563": { "id": 93, "name": "MediumTeal" },
+        "#007189": { "id": 250, "name": "Marine Coloring" },
+        "#14849C": { "id": 94, "name": "Teal" },
+        "#74939C": { "id": 48, "name": "DragonGreen3" },
+        "#ACEAFF": { "id": 96, "name": "Glacial" },
+        "#152B3A": { "id": 81, "name": "DarkBlue" },
+        "#001A33": { "id": 184, "name": "Cetecean Coloring" },
+        "#003366": { "id": 185, "name": "Prussian Coloring" },
+        "#73B9FF": { "id": 188, "name": "Babyblue Coloring" },
+        "#BFDFFF": { "id": 189, "name": "Cornflower Coloring" },
+        "#007FFF": { "id": 187, "name": "Azure Coloring" },
+        "#0059B3": { "id": 186, "name": "Sapphire Coloring" },
+        "#5FA4EA": { "id": 53, "name": "Dino Medium Blue" },
+        "#537CA6": { "id": 191, "name": "Moonstone Coloring" },
+        "#8CB2D9": { "id": 190, "name": "Overcast Coloring" },
+        "#6281A7": { "id": 51, "name": "WyvernBlue0" },
+        "#485C75": { "id": 52, "name": "WyvernBlue1" },
+        "#BAD4FF": { "id": 215, "name": "Sky Dye" },
+        "#82A7FF": { "id": 95, "name": "PowderBlue" },
+        "#4568D4": { "id": 54, "name": "Dino Deep Blue" },
+        "#394263": { "id": 29, "name": "Dino Dark Blue" },
+        "#D9E0FF": { "id": 28, "name": "Dino Light Blue" },
+        "#535872": { "id": 251, "name": "Haze Coloring" },
+        "#191D36": { "id": 80, "name": "MidnightBlue" },
+        "#000033": { "id": 192, "name": "Midnight Coloring" },
+        "#000066": { "id": 193, "name": "Navy Coloring" },
+        "#34346C": { "id": 224, "name": "Navy Dye" },
+        "#0000B3": { "id": 194, "name": "Cobalt Coloring" },
+        "#5353A6": { "id": 199, "name": "Deepfreeze Coloring" },
+        "#0000FF": { "id": 202, "name": "Blue Dye" },
+        "#8C8CD9": { "id": 198, "name": "Frost Coloring" },
+        "#7373FF": { "id": 196, "name": "Denim Coloring" },
+        "#BFBFFF": { "id": 197, "name": "Ice Coloring" },
+        "#787496": { "id": 49, "name": "WyvernPurple0" },
+        "#E4D9FF": { "id": 30, "name": "Dino Light Purple" },
+        "#403459": { "id": 31, "name": "Dino Dark Purple" },
+        "#B0A2C0": { "id": 50, "name": "WyvernPurple1" },
+        "#190033": { "id": 200, "name": "Twilight Coloring" },
+        "#7C53A6": { "id": 207, "name": "Royalty Coloring" },
+        "#5900B3": { "id": 202, "name": "Indigo Coloring" },
+        "#330066": { "id": 201, "name": "Eminence Coloring" },
+        "#B38DD9": { "id": 206, "name": "Mauve Coloring" },
+        "#B973FF": { "id": 204, "name": "Lilac Coloring" },
+        "#DFBFFF": { "id": 205, "name": "Lavender Coloring" },
+        "#8000FF": { "id": 203, "name": "Violet Coloring" },
+        "#7B00E0": { "id": 211, "name": "Uncraftable Purple Dye" },
+        "#6C00BA": { "id": 207, "name": "Purple Dye" },
+        "#E8B0FF": { "id": 67, "name": "LightPink" },
+        "#7B00A8": { "id": 213, "name": "Royalty Dye" },
+        "#8F4EA5": { "id": 252, "name": "Dusk Coloring" },
+        "#302531": { "id": 82, "name": "BlackSands" },
+        "#853587": { "id": 90, "name": "MediumLavender" },
+        "#5E275F": { "id": 89, "name": "DarkLavender" },
+        "#BD77BE": { "id": 91, "name": "Lavender" },
+        "#B200B3": { "id": 210, "name": "Purple Coloring" },
+        "#330033": { "id": 208, "name": "Eggplant Coloring" },
+        "#660066": { "id": 209, "name": "Plum Coloring" },
+        "#A653A6": { "id": 215, "name": "Bruise Coloring" },
+        "#FF00FF": { "id": 211, "name": "Magenta Coloring" },
+        "#D98DD9": { "id": 214, "name": "Orchid Coloring" },
+        "#FF73FF": { "id": 212, "name": "Pink Coloring" },
+        "#FFBFFF": { "id": 213, "name": "Cottoncandy Coloring" },
+        "#E71FD9": { "id": 220, "name": "Magenta Dye" },
+        "#FF7BE1": { "id": 210, "name": "Pink Dye" },
+        "#E6C3DD": { "id": 253, "name": "Thistle Coloring" },
+        "#730046": { "id": 69, "name": "DarkViolet" },
+        "#FF119A": { "id": 68, "name": "DeepPink" },
+        "#660033": { "id": 217, "name": "Tyrian Coloring" },
+        "#FF73B9": { "id": 220, "name": "Flamingo Coloring" },
+        "#FFBFDF": { "id": 221, "name": "Valentine Coloring" },
+        "#D98DB3": { "id": 222, "name": "Kobi Coloring" },
+        "#FF007F": { "id": 219, "name": "Fuschia Coloring" },
+        "#B30059": { "id": 218, "name": "Lust Coloring" },
+        "#A6537C": { "id": 223, "name": "Rouge Coloring" },
+        "#330019": { "id": 216, "name": "Raisin Coloring" },
+        "#B70042": { "id": 70, "name": "DarkMagenta" },
+        "#FFBFCF": { "id": 254, "name": "Bubblegum Coloring" },
+    };
+
+const grid = document.getElementById("colorGrid");
+
+for (const [hex, info] of Object.entries(colorData)) {
+  const box = document.createElement("div");
+  box.className = "color-box";
+  box.style.backgroundColor = hex;
+
+  // ID pill
+  const idPill = document.createElement("div");
+  idPill.className = "pill";
+  idPill.textContent = info.id;
+  box.appendChild(idPill);
+
+  // Name label
+  const nameLabel = document.createElement("div");
+  nameLabel.className = "pill color-name";
+  nameLabel.textContent = info.name;
+  box.appendChild(nameLabel);
+
+  // Buttons 0-5 at bottom
+  const buttonRow = document.createElement("div");
+  buttonRow.className = "button-row";
+  for (let i = 0; i <= 5; i++) {
+    const btn = document.createElement("button");
+    btn.className = "pill color-button";
+    btn.textContent = i;
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      navigator.clipboard.writeText(`/sdc ${i} ${info.id}`);
+    });
+    buttonRow.appendChild(btn);
+  }
+  box.appendChild(buttonRow);
+
+  grid.appendChild(box);
+}
+</script>
+</body>
+</html>
